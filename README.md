@@ -82,15 +82,21 @@ python app.py
 
 Navigate to `http://127.0.0.1:5000` (or the port specified in terminal) in your preferred modern web browser to view the SOC dashboard.
 
-## 📊 Dashboard Preview
+## 📊 Dashboard & System Evaluation
 
 The dashboard incorporates dynamic metrics:
 - **Ping/Latency & Speed** trackers.
 - **Threat Matrices** classifying severity.
 - **Incident Logs** with direct PDF report generation.
 
-*(Placeholder for Screenshot)*
-> *Add a screenshot of your beautiful dashboard here directly into this README!*
+<p align="center">
+  <img src="confusion_matrix.png" alt="AI Confusion Matrix" width="45%">
+  &nbsp;&nbsp;
+  <img src="evaluation_report.png" alt="AI Evaluation Report" width="45%">
+</p>
+<p align="center">
+    <em>Actual evaluation matrices from our ML Anomaly Detection model exhibiting classification accuracy.</em>
+</p>
 
 ## 🧑‍💻 File Structure Snapshot
 
