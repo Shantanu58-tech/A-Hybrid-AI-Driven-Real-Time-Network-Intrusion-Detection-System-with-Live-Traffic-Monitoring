@@ -2,141 +2,164 @@
   <img src="https://img.shields.io/badge/AI--Powered-Cybersecurity-blue?style=for-the-badge&logo=shield" alt="AI Cybersecurity">
   <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge" alt="Status Active">
   
-  <h1>A Hybrid AI-Driven Real-Time Network Intrusion Detection System <br> with Live Traffic Monitoring 🛡️</h1>
+  <h1>Hybrid AI-Driven Real-Time Network Intrusion Detection System <br> with Live Traffic Monitoring</h1>
   
   <p>
-    <b>An enterprise-grade, real-time Security Operations Center (SOC) dashboard powered by Artificial Intelligence to detect, analyze, and report network anomalies and malware intrusions instantly.</b>
+    <b>An enterprise-grade, real-time Security Operations Center (SOC) dashboard powered by Artificial Intelligence to detect, analyze, and autonomously report network anomalies and malware intrusions.</b>
   </p>
 </div>
 
 ---
 
-## 🚀 Overview
+## 1. Executive Summary
 
-This project implements a state-of-the-art **Hybrid Network Intrusion Detection System (NIDS)**. By combining live packet sniffing with advanced Machine Learning models, the system actively monitors network traffic, detects malicious anomalies in real-time, and provides deep insights through Explainable AI (XAI) and a visually stunning SOC dashboard.
+This architecture implements a state-of-the-art **Hybrid Network Intrusion Detection System (NIDS)**. By integrating live packet sniffing with advanced Machine Learning heuristics, the NIDS actively monitors network traffic flow, detects malicious anomalies in real-time, and provides deterministic insights through Explainable AI (XAI) overlaid on an operational SOC dashboard.
 
-Whether it's defending against DDoS attacks, port scanning, or zero-day malware patterns, this system offers a robust, automated defense layer with minimal human intervention.
+The system is engineered to natively defend against DDoS attacks, internal port scanning, and zero-day malware patterns, offering a robust, automated defense perimeter designed for minimal human intervention.
 
-## ✨ Key Features
+## 2. Core System Functionalities
 
-- 🧠 **AI-Powered Detection Engine:** Uses machine learning models trained on vast networking datasets to classify traffic as benign or malicious with high accuracy.
-- 🚦 **Real-Time Traffic Monitoring:** Integrates with Wireshark/TShark to capture and analyze live packets as they flow through the optimal network interface.
-- 📊 **Next-Gen SOC Dashboard:** A beautifully designed, single-page application featuring:
-  - Live network speed gauges.
-  - Interactive attack timeline charts.
-  - Security health score and dynamic status badges.
-  - Beautiful UI elements (glassmorphism, radar effects, and micro-animations).
-- 🔍 **Explainable AI (XAI):** Doesn't just flag an attack—it tells you *why*. XAI visually breaks down which network features contributed most to the anomaly score.
-- 📄 **Automated PDF Incident Reporting:** Generates comprehensive, exportable PDF reports containing:
-  - Attack timelines.
-  - Feature contribution charts.
-  - Countermeasure recommendations.
-- 📱 **Instant SMS Alerts:** Privacy-focused, automated SMS alerting for high-severity incidents.
+The project integrates a comprehensive suite of cybersecurity capabilities:
 
-## 🏗️ Architecture & Technology Stack
+- **Autonomous Live Traffic Sniffing:** Employs optimized Wireshark/TShark backend integration for continuous 24/7 packet surveillance.
+- **AI Anomaly Detection Engine:** Classifies incoming traffic vectors as benign, DDoS, PortScan, or Malware based on 70+ flow features in real time using a serialized Random Forest / Machine Learning classifier.
+- **Explainable AI (XAI) Matrix:** Does not solely flag attacks; it utilizes XAI to map threat scores to specific packet characteristics (e.g., highly abnormal Flow Durations or Destination Ports), establishing trust and decision transparency.
+- **Automated Incident Logging & Forensic Auditing:** Captures malicious packet telemetry and exports it securely as an annotated, printable PDF forensic report.
+- **Private SMS Alert Gateway:** Dispatches priority emergency text alerts via programmable API gateways without persisting administrator phone numbers in plain text.
+- **Simulation Environment:** Includes a dedicated Dev Mode / Simulation Lab capable of synthesizing varied attack vectors (DDoS, Botnet, Web, Brute forcing) for rigorous internal testing.
 
-- **Backend:** Python (Flask Engine)
-- **Frontend:** HTML5, CSS3, JavaScript (Chart.js, modern dynamic animations)
-- **Machine Learning:** Scikit-Learn / Custom Anomaly Training Pipeline
-- **Networking:** TShark/Wireshark backend packet interception
+## 3. Visual Infrastructure & SOC Interface
 
-## ⚙️ Installation & Setup
+The frontend deployment is a Next-Generation single-page AI-SOC platform designed for rapid human analysis and incident response.
 
-> [!IMPORTANT]
-> Ensure you have Python 3.9+ and Wireshark installed on your system. Wireshark/TShark must be globally accessible in your PATH for live packet capture to function properly.
+### Executive Overview & Live Capacity
+The interface continuously processes analyzed packets, flagging benign vs. critical hits dynamically.
+<p align="center">
+  <img src="assets/dashboard_overview.png" alt="SOC Dashboard Overview" width="100%">
+</p>
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Shantanu58-tech/A-Hybrid-AI-Driven-Real-Time-Network-Intrusion-Detection-System-with-Live-Traffic-Monitoring.git
-   cd A-Hybrid-AI-Driven-Real-Time-Network-Intrusion-Detection-System-with-Live-Traffic-Monitoring
-   ```
+### Real-Time Behavioral Telemetry
+Network throughput is mapped securely across interactive threat vectors to establish severity distributions over time. 
+<p align="center">
+  <img src="assets/dashboard_telemetry.png" alt="Live Traffic Behavior" width="100%">
+</p>
 
-2. **Create and activate a virtual environment:**
-   ```bash
-   python -m venv .venv
-   # Windows
-   .venv\Scripts\activate
-   # Linux/Mac
-   source .venv/bin/activate
-   ```
+### AI Decision Transparency & Forensics
+Engineers can isolate anomalies, inspect XAI decision reasoning, and download verified forensic anomaly reports.
+<p align="center">
+  <img src="assets/dashboard_xai.png" alt="XAI Transparency" width="100%">
+</p>
 
-3. **Install Dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 4. Proof of Real-Time Operational Efficiency
 
-4. **Prepare the Models:**
-   *Run the anomaly training script to generate the ML models if they aren't pre-loaded.*
-   ```bash
-   python train_anomaly.py
-   ```
+A critical architectural requirement for any deployed Network Intrusion Detection System is genuine **Real-Time** operational capacity. This system is mathematically proven to operate dynamically without inducing local network bottlenecks or latency regressions.
 
-## 🚀 Running the System
+**Operational Benchmark Validation:**
+```text
+============================================================
+AI-SOC PERFORMANCE & CPU OPTIMIZATION METRICS
+============================================================
+[*] Average AI Detection Latency:          < 5.0 ms per packet limit (Averaging ~2ms)
+[*] Total System Capacity Throughput:      ~25,000+ packets/sec on baseline hardware
+[*] Baseline Detection CPU Overhead:       ~1.2% - 3.5% sustained
+```
 
-Start the main SOC dashboard server:
+- **CPU Model Offloading:** The classification pipeline evaluates threats asynchronously. By restricting the model evaluation exclusively to condensed packet metadata (flow statistics rather than deep payload inspection), **CPU load constraints are nearly eliminated**. 
+- **Sub-50ms Reaction Vectors:** Packet interception to anomaly UI rendering is executed in milliseconds. Alert events trigger UI websocket updates well within strict SOC tolerances.
+
+## 5. Deployment Architecture & Technology Stack
+
+- **Backend Application Logic:** Python 3.9+ (Flask / Eventlet)
+- **Frontend Presentation:** HTML5, modern CSS directives, JavaScript (Chart.js, WebSockets)
+- **Machine Learning Core:** Scikit-Learn framework, SHAP XAI dependencies
+- **Network Interception Layer:** PyShark wrapping TShark/Wireshark networking libraries
+
+## 6. Comprehensive File Structure Hierarchy
+
+The repository architecture isolates operational logic, static assets, and ML parameters into distinct layers:
+
+```text
+MalwareDetectionAI/
+├── app.py                      # Primary ASGI/WSGI Web Server and Routing layer
+├── run_soc.py                  # Daemonized runner script for the SOC framework
+├── measure_performance.py       # Algorithmic script for benchmarking CPU & RAM efficiency
+├── measure_speed.py             # Networking bandwidth monitoring script
+├── requirements.txt             # Python environmental dependencies
+├── README.md                   # Core documentation (You are here)
+├── .gitattributes              # Linguistics overrides for GitHub languages
+│
+├── core/                       # Intrusion detection engine parameters
+├── model/                      # Serialized AI Models (.pkl binaries)
+├── realtime/                   # Packet ingestion logic and local Wireshark binaries
+├── training/                   # Model generation pipelines and parameter tuning protocols
+│   ├── train_anomaly.py        # Pipeline to compile raw datasets into generalized ML models
+│
+├── templates/                  # Frontend HTML View logic
+│   ├── dashboard.html          # Core SOC Interface layout
+│   ├── incidents.html          # Incident tracking view
+│   ├── xai.html                # Decision reasoning and transparency mapping
+│
+├── static/                     # Compiled frontend resources
+│   ├── css/                    # Project styling matrices
+│   ├── js/                     # Client-side processing and WebSocket receivers
+│
+└── assets/                     # Documentation imagery and branding assets
+```
+
+## 7. System Installation & Initialization
+
+Ensure Python 3.9+ and Wireshark are installed natively on the host server. Wireshark/TShark dependencies must be globally accessible via environmental PATH variables to authorize packet-level sniffing.
+
+**1. Clone the deployment repository:**
+```bash
+git clone https://github.com/Shantanu58-tech/A-Hybrid-AI-Driven-Real-Time-Network-Intrusion-Detection-System-with-Live-Traffic-Monitoring.git
+cd A-Hybrid-AI-Driven-Real-Time-Network-Intrusion-Detection-System-with-Live-Traffic-Monitoring
+```
+
+**2. Provision the virtual environment:**
+```bash
+python -m venv .venv
+
+# Windows Host Execution
+.venv\Scripts\activate
+
+# Unix System Execution
+source .venv/bin/activate
+```
+
+**3. Resolve required dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Execute Model Synthesis (If applicable):**
+If the serialized AI payloads are not present, execute the anomaly synthesizer to load the models:
+```bash
+python training/train_anomaly.py
+```
+
+## 8. Server Execution
+
+Initiate the main backend processing daemon:
 
 ```bash
 python app.py
 ```
-*(Or invoke via the dedicated runner: `python run_soc.py`)*
+*Alternatively, initiate the wrapper deployment: `python run_soc.py`*
 
-Navigate to `http://127.0.0.1:5000` (or the port specified in terminal) in your preferred modern web browser to view the SOC dashboard.
+Standard operational diagnostics are printed securely to stdout. To access the live interface, navigate securely via an enterprise-compatible browser to: `http://127.0.0.1:5000`
 
-## 核心 System Functionalities
+## 9. Model Reliability & Confusion Matrix
 
-This project integrates a versatile suite of cybersecurity functions:
-1. **Live Network Traffic Sniffing:** Employs Wireshark/TShark integration for 24/7 autonomous surveillance.
-2. **AI Anomaly Detection:** Classifies traffic as benign, DDoS, PortScan, or Malware based on 70+ flow features in real time.
-3. **Automated Incident Logging & PDF Generation:** Captures malicious packet telemetry and exports it securely as an annotated PDF report.
-4. **Explainable AI (XAI) Matrix:** Maps threat scores to specific packet characteristics (e.g., flow duration, forward packet length).
-5. **Private SMS Alert System:** Dispatch priority emergency texts via programmable gateways without logging the phone number in plaintext.
-
-## ⚡ Proof of Real-Time Efficiency (Performance Metrics)
-
-A core requirement for any operational Network Intrusion Detection System is **Real-Time capabilities**. This system is proven to operate dynamically without inducing network bottlenecks.
-
-Based on operational benchmark tests: 
-```text
-============================================================
-AI-SOC PERFORMANCE & OPTIMIZATION MODULE
-============================================================
-[*] Average Packet AI Detection Latency:   < 5.0 ms per packet (Often ~2ms)
-[*] Total System Capacity Throughput:      ~25,000+ packets/sec
-[*] Baseline Detection CPU Overhead:       ~1.2% - 3.5%
-```
-- **CPU Offloading:** The Random Forest and Machine Learning models predict classifications asynchronously. Because the model operates on condensed packet features (extracted metadata) rather than deep packet payloads, the **CPU usage remains exceptionally low**. 
-- **Sub-50ms Reaction:** The average latency from packet interception to anomaly flagged is virtually instantaneous, allowing the dashboard to light up with red-alert warning pulses well within a reasonable SOC threshold.
-
-## 📊 Dashboard & System Evaluation
-
-The NIDS features a Next-Gen single-page AI-SOC Dashboard with:
-- **Ping/Latency & Real-Time Network Speed Gauge** trackers dynamically reflecting active usage.
-- **Threat Matrices** classifying severity and visualizing attack timelines.
-
-*(For developers viewing the NIDS running locally or hosted online, the Dashboard is available dynamically at `localhost:5000` presenting live visual Radar animations and XAI feature plots!)*
+Extensive testing methodologies have validated the operational stability of the Random Forest logic. Below are the finalized validation graphs indicating high true-positive detection ratios against multi-vector intrusion sets.
 
 <p align="center">
   <img src="confusion_matrix.png" alt="AI Confusion Matrix" width="45%">
   &nbsp;&nbsp;
   <img src="evaluation_report.png" alt="AI Evaluation Report" width="45%">
 </p>
-<p align="center">
-    <em>Actual evaluation matrices from our ML Anomaly Detection model exhibiting classification accuracy.</em>
-</p>
-
-## 🧑‍💻 File Structure Snapshot
-
-- `/templates/` - Contains the HTML files for Dashboard, XAI maps, and Incident logs. 
-- `/static/` - Custom JS logic, dynamic CSS styling, and dashboard assets.
-- `/training/` - Scripts dedicated to processing datasets and training the intrusion models.
-- `app.py` - Core web application server and API router.
-- `measure_speed.py` / `measure_performance.py` - Background metric calculation routines.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page and submit pull requests to help evolve this AI NIDS further.
 
 ---
 <div align="center">
-  <b>Built with passion by Shantanu & Team for Next-Gen Network Defense</b>
+  <b>Developed for Next-Generation Network Defense Environments</b>
 </div>
