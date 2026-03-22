@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-SOC | Professional Threat Detection</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="soc-wrapper">
+        <!-- Header -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-shield-halved"></i>
+                    AI-DRIVEN SOC PLATFORM
+                </a>
+
+                <div class="d-none d-md-flex align-items-center ms-4">
+                    <div class="sticker sticker-ai"><i class="fas fa-brain"></i> AI Guard Active</div>
+                    <div class="sticker sticker-shield"><i class="fas fa-satellite-dish"></i> Real-time Feed</div>
+                    <div id="live-status-sticker" class="sticker sticker-shield" style="border-color: var(--success); color: var(--success);"><i class="fas fa-shield-check"></i> Network Healthy</div>
+                </div>
+
+                <div class="ms-auto d-flex align-items-center">
+                    <!-- Resource Usage -->
+                    <div class="d-none d-lg-flex align-items-center me-4 gap-4" style="background: rgba(255,255,255,0.03); padding: 8px 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div class="resource-item">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span style="font-size: 0.6rem; font-weight: 800; color: var(--text-dim);">CPU LOAD</span>
+                                <span id="cpu-value" style="font-size: 0.6rem; font-weight: 800; color: var(--accent-blue);">0%</span>
+                            </div>
+                            <div class="progress" style="width: 80px; height: 4px;">
+                                <div id="cpu-bar" class="progress-bar" style="width: 0%; background: var(--accent-blue);"></div>
+                            </div>
+                        </div>
+                        <div class="resource-item">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span style="font-size: 0.6rem; font-weight: 800; color: var(--text-dim);">GPU LOAD</span>
+                                <span id="gpu-value" style="font-size: 0.6rem; font-weight: 800; color: var(--accent-purple);">0%</span>
+                            </div>
+                            <div class="progress" style="width: 80px; height: 4px;">
+                                <div id="gpu-bar" class="progress-bar" style="width: 0%; background: var(--accent-purple);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center me-4">
+                        <span id="connection-dot" class="status-dot status-offline"></span>
+                        <span id="connection-status" style="font-size: 0.8rem; font-weight: 600; color: var(--text-dim);">CONNECTING...</span>
+                    </div>
+                    <button id="toggle-capture-btn" class="btn btn-outline-success">
+                        <i class="fas fa-power-off me-2"></i> SYSTEM MONITOR
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Metrics Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-5">
+                <div class="row g-4 h-100">
+                    <div class="col-6">
+                        <div class="stat-card h-100">
+                            <div class="stat-label">Network Load</div>
+                            <div class="stat-value" id="total-packets">0</div>
+                            <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 5px;">ANALYSED PKTS</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card h-100">
+                            <div class="stat-label">System Velocity</div>
+                            <div class="stat-value" style="color: var(--warning);" id="apm">0</div>
+                            <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 5px;">INCIDENTS / MIN</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card h-100">
+                            <div class="stat-label">Clean Flow</div>
+                            <div class="stat-value" style="color: var(--success);" id="benign-count">0</div>
+                            <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 5px;">BENIGN PKTS</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card h-100" id="malware-card">
+                            <div class="stat-label">Critical Hits</div>
+                            <div class="stat-value" style="color: var(--danger);" id="malware-count">0</div>
+                            <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 5px;">THREATS FOUND</div>
+                            <i class="fas fa-biohazard text-danger" style="position: absolute; right: 15px; bottom: 15px; opacity: 0.1; font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Network Speed Representation -->
+            <div class="col-md-3">
+                <div class="stat-card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                    <div class="stat-label">Current Network Speed</div>
+                    <div class="speed-meter">
+                        <canvas id="speedGauge" width="160" height="100"></canvas>
+                        <div class="speed-value-display">
+                            <h2 class="stat-value" id="kbps-value" style="font-size: 1.8rem; color: var(--accent-cyan);">0.00</h2>
+                            <span class="speed-unit">Kbps / SEC</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 mt-2">
+                        <span class="badge bg-dark border-secondary border text-dim" style="font-size: 0.6rem;">LATENCY: 12ms</span>
+                        <span class="badge bg-dark border-secondary border text-dim" style="font-size: 0.6rem;">JITTER: 2ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Health -->
+            <div class="col-md-4">
+                <div class="content-card h-100" style="margin-bottom: 0; background: linear-gradient(135deg, rgba(0, 140, 255, 0.1), rgba(0,0,0,0.4));">
+                    <div class="card-header border-0 bg-transparent">
+                        <h3 class="card-title text-main">SYSTEM SURVEILLANCE</h3>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div style="width: 50px; height: 50px; background: rgba(0, 242, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--accent-cyan);">
+                                <i class="fas fa-radar fa-spin text-cyan"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent-cyan);">MALWARE SCANNER ACTIVE</div>
+                                <div style="font-size: 0.65rem; color: var(--text-dim);">Scanning for Zero-Day anomalies...</div>
+                            </div>
+                        </div>
+                        <div class="progress mb-2" style="height: 4px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%; background-color: var(--accent-cyan);"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3 text-center">
+                            <div>
+                                <div id="health-score" class="health-score-value">100%</div>
+                                <div style="font-size: 0.55rem; color: var(--text-dim);">SEC HEALTH</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-blue);">99.8%</div>
+                                <div style="font-size: 0.55rem; color: var(--text-dim);">AI ACCURACY</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-purple);">ENCRYPTED</div>
+                                <div style="font-size: 0.55rem; color: var(--text-dim);">DATA CHANNEL</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Area -->
+        <div class="row g-4 mb-4">
+            <!-- Traffic Analysis -->
+            <div class="col-lg-8">
+                <div class="content-card" style="height: 100%;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-chart-line"></i> LIVE TRAFFIC BEHAVIOR</h3>
+                        <span style="font-size: 0.7rem; color: var(--text-dim);">REAL-TIME TELEMETRY</span>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 350px;">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attack Distribution -->
+            <div class="col-lg-4">
+                <div class="content-card" style="height: 100%;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-chart-pie"></i> THREAT VECTORS</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 250px;">
+                            <canvas id="typeChart"></canvas>
+                        </div>
+                        <hr style="border-color: var(--border-color); margin: 25px 0;">
+                        <h4 style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim); margin-bottom: 15px;">SEVERITY DISTRIBUTION</h4>
+                        <div style="height: 60px;">
+                            <canvas id="severityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations Center -->
+        <div class="row g-4 mb-4">
+            <!-- Simulations (Developer Mode) -->
+            <div class="col-lg-4">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-flask"></i> SIMULATION LAB</h3>
+                        <span class="badge bg-primary" style="font-size: 0.6rem;">DEV MODE</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="sim-grid">
+                            <div class="btn-sim sim-btn" data-type="BENIGN" data-count="10">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i> Normal
+                            </div>
+                            <div class="btn-sim sim-btn" data-type="DDoS" data-count="50">
+                                <i class="fas fa-bomb" style="color: var(--danger);"></i> DDoS
+                            </div>
+                            <div class="btn-sim sim-btn" data-type="Infiltration" data-count="5">
+                                <i class="fas fa-user-secret" style="color: var(--accent-purple);"></i> Breach
+                            </div>
+                            <div class="btn-sim sim-btn" data-type="PortScan" data-count="30">
+                                <i class="fas fa-search" style="color: var(--warning);"></i> Scanning
+                            </div>
+                            <div class="btn-sim sim-btn" data-type="Bot" data-count="15">
+                                <i class="fas fa-robot" style="color: var(--accent-blue);"></i> Botnet
+                            </div>
+                            <div class="btn-sim sim-btn" data-type="Web Attack" data-count="10">
+                                <i class="fas fa-code" style="color: var(--success);"></i> Web
+                            </div>
+                            <div class="btn-sim sim-btn" data-type="Brute Force" data-count="15">
+                                <i class="fas fa-key" style="color: var(--warning);"></i> Brute
+                            </div>
+                            <div class="btn-sim sim-btn" data-type="Mixed" data-count="20">
+                                <i class="fas fa-random" style="color: var(--text-main);"></i> Mixed
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporting -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-file-pdf"></i> FORENSIC AUDIT</h3>
+                    </div>
+                    <div class="card-body text-center py-4">
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 20px;">Generate a verified AI forensic report for the latest detected incident.</p>
+                        <a href="/api/generate-pdf" class="btn btn-danger w-100" id="download-pdf-btn">
+                            <i class="fas fa-download me-2"></i> DOWNLOAD XAI REPORT
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Explainable AI Panel -->
+            <div class="col-lg-8">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-brain"></i> AI DECISION TRANSPARENCY (XAI)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-7">
+                                <div style="height: 250px;">
+                                    <canvas id="xaiChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="p-3 rounded-4" style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);">
+                                    <h5 style="font-size: 0.9rem; font-weight: 700; color: var(--accent-cyan);">INCIDENT REASONING</h5>
+                                    <p id="xai-reasoning" style="font-size: 0.8rem; color: var(--text-dim); font-style: italic; margin-bottom: 15px;">Monitoring neutral traffic flow...</p>
+                                    
+                                    <div class="table-responsive" style="max-height: 200px;">
+                                        <table class="table table-sm xai-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Feature</th>
+                                                    <th>Baseline</th>
+                                                    <th>Packet</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="xai-features-table">
+                                                <tr><td colspan="3" class="text-center py-4 text-dim">Awaiting data...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Stream -->
+        <div class="row">
+            <div class="col-12">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-list-ul"></i> SECURITY INCIDENT STREAM</h3>
+                        <span class="badge bg-danger" style="animation: pulse 1.5s infinite;">LIVE FEED</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th># TIMESTAMP</th>
+                                    <th>SOURCE VECTOR</th>
+                                    <th>PROTOCOL</th>
+                                    <th>SIZE (B)</th>
+                                    <th>CLASSIFICATION</th>
+                                    <th>SEVERITY</th>
+                                    <th>ANOMALY %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alert-table-body">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Alarm Audio -->
+    <audio id="alarm-sound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>

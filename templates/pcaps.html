@@ -1,0 +1,118 @@
+
+{% extends "layout.html" %}
+
+{% block title %}Deep Inspection | AI-SOC{% endblock %}
+{% block page_title %}Packet Deep Inspection & Raw Metadata{% endblock %}
+
+{% block content %}
+<div class="soc-card" style="margin-bottom: 20px;">
+    <div class="soc-card-header">
+        <span class="soc-card-title"><i class="fas fa-search-plus"></i> Live Packet Stream</span>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" placeholder="Filter by IP/Port..." style="background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-primary); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;">
+            <button class="btn-action" style="font-size: 0.7rem; padding: 4px 8px;">EXPORT PCAP</button>
+        </div>
+    </div>
+    <div class="soc-table-container" style="max-height: 500px; font-family: var(--font-mono);">
+        <table class="soc-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Source</th>
+                    <th>Dest Port</th>
+                    <th>Protocol</th>
+                    <th>Length</th>
+                    <th>Anomaly</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="pcap-table-body" style="font-size: 0.8rem;">
+                <!-- Packets -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-file-code"></i> Hex View / Raw Metadata</span>
+        </div>
+        <div id="packet-hex-view" style="background: #000; padding: 15px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-green); height: 250px; overflow-y: auto; line-height: 1.5;">
+            SELECT A PACKET TO VIEW RAW DATA...
+        </div>
+    </div>
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-stream"></i> Flow Sequence</span>
+        </div>
+        <div id="flow-sequence" style="height: 250px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); border: 1px dashed var(--border-color); border-radius: 8px;">
+            [ Sequence Diagram Placeholder ]
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    socket.on('packet_data', (data) => {
+        const tbody = document.getElementById('pcap-table-body');
+        const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+        
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.className = data.type !== 'BENIGN' ? 'malicious-row' : '';
+        tr.onclick = () => showHexView(data);
+        
+        tr.innerHTML = `
+            <td>${now}</td>
+            <td style="color: var(--accent-blue)">${data.src_ip}</td>
+            <td>${data.dst_port || 80}</td>
+            <td><span class="badge" style="background: rgba(255,255,255,0.05); color: #888;">${data.protocol}</span></td>
+            <td>${data.length} B</td>
+            <td><span class="badge badge-${data.type === 'BENIGN' ? 'low' : 'critical'}">${data.anomaly_score}</span></td>
+            <td><i class="fas fa-eye" style="color: var(--accent-blue)"></i></td>
+        `;
+
+        tbody.prepend(tr);
+        if (tbody.children.length > 50) tbody.removeChild(tbody.lastChild);
+    });
+
+    function showHexView(data) {
+        const hexView = document.getElementById('packet-hex-view');
+        const mockHex = generateMockHex(data.length);
+        
+        hexView.innerHTML = `
+            <div style="color: var(--accent-blue); margin-bottom: 10px;">FRAME ${data.id}: ${data.length} bytes on wire</div>
+            <div style="color: var(--text-secondary)">Source IP: ${data.src_ip}</div>
+            <div style="color: var(--text-secondary)">Protocol: ${data.protocol} | Anomaly: ${data.anomaly_score}</div>
+            <hr style="border-color: #222; margin: 10px 0;">
+            ${mockHex}
+        `;
+    }
+
+    function generateMockHex(length) {
+        let out = "";
+        for(let i=0; i<8; i++) {
+            let offset = (i*16).toString(16).padStart(4, '0');
+            let hex = "";
+            let chars = "";
+            for(let j=0; j<16; j++) {
+                let val = Math.floor(Math.random() * 256);
+                hex += val.toString(16).padStart(2, '0') + " ";
+                chars += (val > 31 && val < 127) ? String.fromCharCode(val) : ".";
+            }
+            out += `<div><span style="color: #444;">${offset}</span>&nbsp;&nbsp;${hex}&nbsp;&nbsp;<span style="color: var(--text-secondary)">${chars}</span></div>`;
+        }
+        return out;
+    }
+</script>
+<style>
+    .malicious-row {
+        background: rgba(255, 49, 49, 0.05) !important;
+    }
+    .malicious-row:hover {
+        background: rgba(255, 49, 49, 0.1) !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,13 @@
+
+flask
+flask-socketio
+eventlet
+pandas
+numpy
+scikit-learn
+shap
+pyshark
+joblib
+requests
+matplotlib
+reportlab

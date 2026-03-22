@@ -1,0 +1,205 @@
+
+{% extends "layout.html" %}
+
+{% block title %}SOC Overview | AI-SOC{% endblock %}
+{% block page_title %}Security Operations Center Overview{% endblock %}
+
+{% block content %}
+<div class="stat-group">
+    <div class="stat-item">
+        <div class="stat-label">Total Packets</div>
+        <div class="stat-value" id="main-total-packets">0</div>
+    </div>
+    <div class="stat-item success">
+        <div class="stat-label">Benign Traffic</div>
+        <div class="stat-value" id="main-benign-count">0</div>
+    </div>
+    <div class="stat-item danger">
+        <div class="stat-label">Malware Detected</div>
+        <div class="stat-value" id="main-malware-count">0</div>
+    </div>
+    <div class="stat-item warning">
+        <div class="stat-label">Attacks / Min</div>
+        <div class="stat-value" id="main-apm">0</div>
+    </div>
+</div>
+
+<div class="grid-2-1">
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-map-marker-alt"></i> Global Threat Map</span>
+            <span class="badge badge-low">Live Feed</span>
+        </div>
+        <div id="threat-map" style="height: 400px; width: 100%; background: rgba(0,0,0,0.2); border-radius: 8px;"></div>
+    </div>
+    
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-radiation"></i> Threat Severity Heatmap</span>
+        </div>
+        <canvas id="severityHeatmap" style="height: 400px;"></canvas>
+    </div>
+</div>
+
+<div class="grid-1-2" style="margin-top: 20px;">
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-bell"></i> Live Alerts</span>
+            <a href="{{ url_for('incident_center') }}" style="font-size: 0.7rem; color: var(--accent-blue);">View All</a>
+        </div>
+        <div class="soc-table-container" style="max-height: 350px;">
+            <table class="soc-table">
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>Type</th>
+                        <th>Severity</th>
+                    </tr>
+                </thead>
+                <tbody id="live-alerts-body">
+                    <!-- Alerts will be prepended here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-wave-square"></i> Real-time Traffic Flow</span>
+        </div>
+        <div style="height: 350px;">
+            <canvas id="mainTrafficChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize Overview Charts
+    const trafficCtx = document.getElementById('mainTrafficChart').getContext('2d');
+    const severityCtx = document.getElementById('severityHeatmap').getContext('2d');
+
+    const trafficChart = new Chart(trafficCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Global Network Load',
+                borderColor: '#00d2ff',
+                backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                data: [],
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0
+            }, {
+                label: 'Threat Intensity',
+                borderColor: '#ff3131',
+                backgroundColor: 'rgba(255, 49, 49, 0.1)',
+                data: [],
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: getChartTheme()
+    });
+
+    const severityChart = new Chart(severityCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Low', 'Medium', 'High', 'Critical'],
+            datasets: [{
+                data: [0, 0, 0, 0],
+                backgroundColor: ['#39ff14', '#faff00', '#ff8c00', '#ff3131'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#888888' } }
+            }
+        }
+    });
+
+    // Mock Map using Plotly
+    const mapData = [{
+        type: 'scattergeo',
+        mode: 'markers',
+        locations: ['USA', 'CAN', 'GBR', 'CHN', 'RUS', 'AUS', 'IND', 'BRA'],
+        marker: {
+            size: [10, 5, 15, 20, 25, 8, 12, 7],
+            color: '#ff3131',
+            line: { color: '#00d2ff', width: 1 }
+        },
+        name: 'Threat Level'
+    }];
+
+    const mapLayout = {
+        geo: {
+            bgcolor: 'rgba(0,0,0,0)',
+            showland: true,
+            landcolor: '#1a1a1a',
+            showocean: true,
+            oceancolor: '#050505',
+            showcountries: true,
+            countrycolor: '#222',
+            projection: { type: 'orthographic' }
+        },
+        margin: { l: 0, r: 0, t: 0, b: 0 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)'
+    };
+
+    Plotly.newPlot('threat-map', mapData, mapLayout, { responsive: true, displayModeBar: false });
+
+    // Handle incoming data
+    socket.on('packet_data', (data) => {
+        // Update stats UI
+        document.getElementById('main-total-packets').innerText = formatNum(socStats.total + 1);
+        if (data.type === 'BENIGN') {
+            document.getElementById('main-benign-count').innerText = formatNum(socStats.benign + 1);
+        } else {
+            document.getElementById('main-malware-count').innerText = formatNum(socStats.malware + 1);
+            
+            // Add to alert list
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="font-family: var(--font-mono); font-size: 0.8rem;">${data.src_ip}</td>
+                <td><span class="badge badge-malware">${data.type}</span></td>
+                <td><span class="badge badge-${data.severity.toLowerCase()}">${data.severity}</span></td>
+            `;
+            const tbody = document.getElementById('live-alerts-body');
+            tbody.prepend(row);
+            if (tbody.children.length > 8) tbody.removeChild(tbody.lastChild);
+
+            // Update severity chart
+            const sevMap = { 'Low': 0, 'Medium': 1, 'High': 2, 'Critical': 3 };
+            const idx = sevMap[data.severity] || 0;
+            severityChart.data.datasets[0].data[idx]++;
+            severityChart.update();
+        }
+
+        // Update traffic chart
+        const now = new Date().toLocaleTimeString();
+        trafficChart.data.labels.push(now);
+        trafficChart.data.datasets[0].data.push(Math.random() * 50 + 20); // Base load
+        trafficChart.data.datasets[1].data.push(data.type === 'BENIGN' ? 0 : Math.random() * 30 + 70); // Threat spike
+        
+        if (trafficChart.data.labels.length > 20) {
+            trafficChart.data.labels.shift();
+            trafficChart.data.datasets[0].data.shift();
+            trafficChart.data.datasets[1].data.shift();
+        }
+        trafficChart.update();
+    });
+
+    // Override global UI updater
+    function updateGlobalUI(data) {
+        document.getElementById('main-apm').innerText = data.apm;
+    }
+</script>
+{% endblock %}

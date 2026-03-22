@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI-SOC Platform{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/soc_core.css') }}">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="soc-container">
+        <!-- Sidebar -->
+        <aside class="soc-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-microchip logo"></i>
+                <span class="title">AI-SOC <span style="color: var(--text-secondary); font-size: 0.7rem;">v2.0</span></span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('index') }}" class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+                    <i class="fas fa-th-large"></i> Overview
+                </a>
+                <a href="{{ url_for('analytics') }}" class="nav-item {% if request.endpoint == 'analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-network"></i> Traffic Analytics
+                </a>
+                <a href="{{ url_for('pcaps') }}" class="nav-item {% if request.endpoint == 'pcaps' %}active{% endif %}">
+                    <i class="fas fa-microscope"></i> Deep Inspection
+                </a>
+                <a href="{{ url_for('threat_intel') }}" class="nav-item {% if request.endpoint == 'threat_intel' %}active{% endif %}">
+                    <i class="fas fa-globe-americas"></i> Threat Intel
+                </a>
+                <a href="{{ url_for('xai_panel') }}" class="nav-item {% if request.endpoint == 'xai_panel' %}active{% endif %}">
+                    <i class="fas fa-brain"></i> XAI Logic
+                </a>
+                <a href="{{ url_for('incident_center') }}" class="nav-item {% if request.endpoint == 'incident_center' %}active{% endif %}">
+                    <i class="fas fa-file-medical-alt"></i> Incident Response
+                </a>
+                <div style="margin-top: 20px; padding: 0 24px; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 2px;">Tools</div>
+                <a href="{{ url_for('simulation_lab') }}" class="nav-item {% if request.endpoint == 'simulation_lab' %}active{% endif %}">
+                    <i class="fas fa-vial"></i> Simulation Lab
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">System Status</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.75rem;">
+                    <i class="fas fa-circle text-success" id="connection-status-dot"></i>
+                    <span id="connection-status-text">System Online</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="soc-main">
+            <header class="soc-header">
+                <div class="header-left">
+                    <h2 style="font-size: 1.1rem; font-weight: 600; margin: 0;">{% block page_title %}Dashboard Overview{% endblock %}</h2>
+                </div>
+                <div class="header-right" style="display: flex; gap: 20px; align-items: center;">
+                    <div id="clock" style="font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent-blue);">00:00:00</div>
+                    <button id="toggle-capture-btn-main" class="btn-action" style="padding: 6px 12px; background: rgba(57, 255, 20, 0.1); border: 1px solid var(--accent-green); color: var(--accent-green); border-radius: 4px; font-size: 0.8rem; cursor: pointer;">
+                        <i class="fas fa-play"></i> MONITOR
+                    </button>
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="soc-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Notifications Container -->
+    <div id="notification-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <script src="{{ url_for('static', filename='js/soc_core.js') }}"></script>
+    <script>
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                          now.getMinutes().toString().padStart(2, '0') + ':' + 
+                          now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('clock').innerText = timeStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Handle Monitor Toggle
+        const monBtn = document.getElementById('toggle-capture-btn-main');
+        let isMonRunning = false;
+
+        function updateMonBtn(running) {
+            isMonRunning = running;
+            if (running) {
+                monBtn.style.color = '#ff3131';
+                monBtn.style.borderColor = '#ff3131';
+                monBtn.style.background = 'rgba(255, 49, 49, 0.1)';
+                monBtn.innerHTML = '<i class="fas fa-stop"></i> STOPPING';
+            } else {
+                monBtn.style.color = '#39ff14';
+                monBtn.style.borderColor = '#39ff14';
+                monBtn.style.background = 'rgba(57, 255, 20, 0.1)';
+                monBtn.innerHTML = '<i class="fas fa-play"></i> MONITOR';
+            }
+        }
+
+        monBtn.addEventListener('click', () => {
+            const action = isMonRunning ? 'stop' : 'start';
+            fetch('/api/toggle-capture', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action })
+            }).then(res => res.json()).then(data => {
+                refreshCaptureStatus();
+            });
+        });
+
+        function refreshCaptureStatus() {
+            fetch('/api/capture-status')
+                .then(res => res.json())
+                .then(data => updateMonBtn(data.running));
+        }
+        refreshCaptureStatus();
+        setInterval(refreshCaptureStatus, 5000);
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

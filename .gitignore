@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+.env
+perf_output.txt
+*.csv
+*.pcap
+*.pkl
+*.h5
+*.dll
+*.exe

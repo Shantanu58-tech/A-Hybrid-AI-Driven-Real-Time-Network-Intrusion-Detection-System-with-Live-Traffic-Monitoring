@@ -1,0 +1,17 @@
+Loading dataset...
+Dataset loaded: (50000, 79)
+Loading model...
+Predicting anomalies...
+Generating Confusion Matrix & Metrics...
+
+==================================================
+AI EVALUATION METRICS:
+==================================================
+Precision: 0.0000 (When it flags Malware, how often is it right?)
+Recall:    0.0000 (Out of all Malware, how much did it find?)
+F1 Score:  0.0000 (Balance between Precision and Recall)
+==================================================
+AUC Score: 0.8000 (Overall ability to distinguish classes)
+==================================================
+
+Success! Full Evaluation Report saved to D:\CN - FOR CODING PART\MalwareDetectionAI\evaluation_report.png

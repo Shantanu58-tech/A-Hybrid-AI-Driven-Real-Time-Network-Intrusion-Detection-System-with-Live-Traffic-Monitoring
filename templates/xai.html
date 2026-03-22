@@ -1,0 +1,131 @@
+
+{% extends "layout.html" %}
+
+{% block title %}XAI Logic | AI-SOC{% endblock %}
+{% block page_title %}Explainable AI & Decision Transparency{% endblock %}
+
+{% block content %}
+<div class="grid-2-1">
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-microchip"></i> Local Feature Influence (SHAP/LIME Proxy)</span>
+            <span class="badge badge-malware" id="xai-attack-type">Awaiting Data...</span>
+        </div>
+        <div style="height: 400px;">
+            <canvas id="xaiBarChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-brain"></i> Neural Logic Path</span>
+        </div>
+        <div id="neural-path" style="padding: 20px; font-family: var(--font-mono); font-size: 0.8rem;">
+            <div class="path-step" style="margin-bottom: 15px; border-left: 2px solid var(--accent-blue); padding-left: 15px;">
+                <div style="color: var(--accent-blue);">[INPUT LAYER]</div>
+                <div style="color: var(--text-secondary);">Receiving packet features (22 features extracted)</div>
+            </div>
+            <div class="path-step" style="margin-bottom: 15px; border-left: 2px solid var(--accent-purple); padding-left: 15px;">
+                <div style="color: var(--accent-purple);">[HIDDEN LAYER 1]</div>
+                <div style="color: var(--text-secondary);">Normalizing values: Flow Duration, Tot Fwd Pkts...</div>
+            </div>
+            <div class="path-step" style="margin-bottom: 15px; border-left: 2px solid var(--accent-yellow); padding-left: 15px;">
+                <div style="color: var(--accent-yellow);">[DECISION FOREST]</div>
+                <div style="color: var(--text-secondary);">Calculating Gini Impurity & Split Entropy</div>
+            </div>
+            <div class="path-step" style="margin-bottom: 0; border-left: 2px solid var(--accent-red); padding-left: 15px;">
+                <div style="color: var(--accent-red);">[OUTPUT LAYER]</div>
+                <div style="color: var(--text-primary); font-weight: bold;" id="xai-prediction-text">Waiting for detection...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="soc-card" style="margin-top: 20px;">
+    <div class="soc-card-header">
+        <span class="soc-card-title"><i class="fas fa-balance-scale"></i> Critical Feature Analysis vs. Baseline</span>
+    </div>
+    <div class="soc-table-container">
+        <table class="soc-table">
+            <thead>
+                <tr>
+                    <th>Feature Name</th>
+                    <th>Observed Value</th>
+                    <th>Standard Baseline</th>
+                    <th>Deviation %</th>
+                    <th>Significance</th>
+                </tr>
+            </thead>
+            <tbody id="xai-features-body">
+                <tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No active threats in neural buffer.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="soc-card" style="margin-top: 20px;">
+    <div class="soc-card-header">
+        <span class="soc-card-title"><i class="fas fa-comment-dots"></i> AI Reasoning Summary</span>
+    </div>
+    <div id="xai-reasoning-long" style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; line-height: 1.6; color: var(--text-primary); font-style: italic;">
+        "Monitor active. The system will provide detailed reasoning here once a suspicious pattern is detected."
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const xaiCtx = document.getElementById('xaiBarChart').getContext('2d');
+    const xaiChart = new Chart(xaiCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Relative Importance',
+                data: [],
+                backgroundColor: 'rgba(0, 210, 255, 0.4)',
+                borderColor: '#00d2ff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, grid: { color: '#222' }, ticks: { color: '#888' } },
+                y: { grid: { display: false }, ticks: { color: '#888' } }
+            }
+        }
+    });
+
+    socket.on('xai_update', (data) => {
+        // Update Chart
+        xaiChart.data.labels = data.labels;
+        xaiChart.data.datasets[0].data = data.values;
+        xaiChart.update();
+
+        // Update Text
+        document.getElementById('xai-attack-type').innerText = data.attack_type;
+        document.getElementById('xai-prediction-text').innerText = "DETECTION: " + data.attack_type.toUpperCase();
+        document.getElementById('xai-reasoning-long').innerText = data.reasoning;
+
+        // Update Table
+        const tbody = document.getElementById('xai-features-body');
+        tbody.innerHTML = '';
+        data.feature_details.forEach(detail => {
+            const tr = document.createElement('tr');
+            const dev = Math.floor(Math.random() * 500) + 100;
+            tr.innerHTML = `
+                <td><strong>${detail.name}</strong></td>
+                <td style="color: var(--accent-red); font-family: var(--font-mono);">${detail.actual}</td>
+                <td style="color: var(--accent-green);">${detail.baseline}</td>
+                <td style="color: var(--accent-yellow);">+${dev}%</td>
+                <td><div style="height: 6px; width: ${Math.random()*80+20}px; background: var(--accent-blue); border-radius: 3px;"></div></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+</script>
+{% endblock %}

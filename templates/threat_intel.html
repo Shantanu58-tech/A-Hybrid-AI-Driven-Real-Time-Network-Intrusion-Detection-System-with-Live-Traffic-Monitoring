@@ -1,0 +1,154 @@
+
+{% extends "layout.html" %}
+
+{% block title %}Threat Intel | AI-SOC{% endblock %}
+{% block page_title %}Threat Intelligence & Tactical Insights{% endblock %}
+
+{% block content %}
+<div class="grid-2-1">
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-history"></i> Historical Threat Timeline</span>
+        </div>
+        <div style="height: 350px;">
+            <canvas id="historicalChart"></canvas>
+        </div>
+    </div>
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-bullseye"></i> Classification Confidence</span>
+        </div>
+        <div style="height: 350px;">
+            <canvas id="confidenceRadar"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid-3" style="margin-top: 20px;">
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-skull-crossbones"></i> Common Attack Vectors</span>
+        </div>
+        <div style="height: 250px;">
+            <canvas id="vectorChart"></canvas>
+        </div>
+    </div>
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-user-ninja"></i> Top Adversaries</span>
+        </div>
+        <ul id="adversary-list" style="list-style: none; padding: 0; margin: 0;">
+            <li style="padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+                <span style="color: var(--accent-red); font-family: var(--font-mono);">185.220.101.42</span>
+                <span class="badge badge-critical">DDoS Master</span>
+            </li>
+            <li style="padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+                <span style="color: var(--accent-yellow); font-family: var(--font-mono);">45.33.32.156</span>
+                <span class="badge badge-medium">Scanner</span>
+            </li>
+        </ul>
+    </div>
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-crystal-ball"></i> Prediction Modeling</span>
+        </div>
+        <div style="padding: 20px; text-align: center;">
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">PROBABILITY OF ATTACK (NEXT 1H)</div>
+            <div style="font-size: 3rem; font-weight: 800; color: var(--accent-red); text-shadow: 0 0 15px rgba(255, 49, 49, 0.5);">84%</div>
+            <div class="badge badge-critical" style="margin-top: 10px;">HIGH RISK LEVEL</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const histCtx = document.getElementById('historicalChart').getContext('2d');
+    const radarCtx = document.getElementById('confidenceRadar').getContext('2d');
+    const vectorCtx = document.getElementById('vectorChart').getContext('2d');
+
+    const historicalChart = new Chart(histCtx, {
+        type: 'bar',
+        data: {
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+            datasets: [{
+                label: 'Bot Activity',
+                backgroundColor: '#9d50bb',
+                data: [12, 19, 3, 5, 2, 3]
+            }, {
+                label: 'DDoS Peaks',
+                backgroundColor: '#ff3131',
+                data: [2, 3, 20, 5, 1, 4]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { color: '#222' }, ticks: { color: '#888' } },
+                y: { stacked: true, grid: { color: '#222' }, ticks: { color: '#888' } }
+            },
+            plugins: { legend: { labels: { color: '#888' } } }
+        }
+    });
+
+    const confidenceRadar = new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: ['DDoS', 'PortScan', 'Bot', 'BruteForce', 'WebAttack', 'Infiltration'],
+            datasets: [{
+                label: 'AI Confidence Score',
+                data: [95, 88, 76, 92, 65, 81],
+                backgroundColor: 'rgba(0, 210, 255, 0.2)',
+                borderColor: '#00d2ff',
+                pointBackgroundColor: '#00d2ff'
+            }, {
+                label: 'Validation Rate',
+                data: [98, 92, 80, 85, 70, 75],
+                backgroundColor: 'rgba(57, 255, 20, 0.1)',
+                borderColor: '#39ff14',
+                pointBackgroundColor: '#39ff14'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    grid: { color: '#222' },
+                    angleLines: { color: '#222' },
+                    pointLabels: { color: '#888' },
+                    ticks: { display: false }
+                }
+            },
+            plugins: { legend: { position: 'bottom', labels: { color: '#888' } } }
+        }
+    });
+
+    const vectorChart = new Chart(vectorCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Exploits', 'Stateful', 'Volumetric', 'Protocol'],
+            datasets: [{
+                data: [40, 30, 20, 10],
+                backgroundColor: ['#ff3131', '#9d50bb', '#00d2ff', '#faff00'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { color: '#888' } } }
+        }
+    });
+
+    socket.on('packet_data', (data) => {
+        if (data.type !== 'BENIGN') {
+            // Update vectors randomly for visual effect
+            const idx = Math.floor(Math.random() * 4);
+            vectorChart.data.datasets[0].data[idx]++;
+            vectorChart.update();
+        }
+    });
+</script>
+{% endblock %}

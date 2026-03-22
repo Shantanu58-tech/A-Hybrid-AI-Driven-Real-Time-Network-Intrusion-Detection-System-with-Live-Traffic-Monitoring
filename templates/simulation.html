@@ -1,0 +1,207 @@
+
+{% extends "layout.html" %}
+
+{% block title %}Simulation Lab | AI-SOC{% endblock %}
+{% block page_title %}Network Stress & Attack Simulation Lab{% endblock %}
+
+{% block content %}
+<div class="soc-card" style="margin-bottom: 20px;">
+    <div class="soc-card-header">
+        <span class="soc-card-title"><i class="fas fa-flask"></i> Global Attack Simulation Controller</span>
+        <span class="badge badge-medium">Developer Mode</span>
+    </div>
+    <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+        
+        <!-- DDoS -->
+        <div class="sim-card" data-type="DDoS">
+            <i class="fas fa-bomb"></i>
+            <div class="sim-name">Volumetric DDoS</div>
+            <div class="sim-desc">Flooding network with high-frequency dummy packets to test throughput limits.</div>
+            <button class="btn-action sim-start-btn" data-type="DDoS">EXECUTE PAYLOAD</button>
+        </div>
+
+        <!-- PortScan -->
+        <div class="sim-card" data-type="PortScan">
+            <i class="fas fa-radar"></i>
+            <div class="sim-name">Recon / PortScan</div>
+            <div class="sim-desc">Simulates a rapid port sweep across multiple destination services.</div>
+            <button class="btn-action sim-start-btn" data-type="PortScan">EXECUTE PAYLOAD</button>
+        </div>
+
+        <!-- Bot -->
+        <div class="sim-card" data-type="Bot">
+            <i class="fas fa-robot"></i>
+            <div class="sim-name">C2 Bot Activity</div>
+            <div class="sim-desc">Command & Control pattern simulation with low-frequency heartbeat beacons.</div>
+            <button class="btn-action sim-start-btn" data-type="Bot">EXECUTE PAYLOAD</button>
+        </div>
+
+        <!-- Web Attack -->
+        <div class="sim-card" data-type="Web Attack">
+            <i class="fas fa-code"></i>
+            <div class="sim-name">SQLi / XSS Injection</div>
+            <div class="sim-desc">Simulates payload patterns common in web application vulnerabilities.</div>
+            <button class="btn-action sim-start-btn" data-type="Web Attack">EXECUTE PAYLOAD</button>
+        </div>
+
+        <!-- Brute Force -->
+        <div class="sim-card" data-type="Brute Force">
+            <i class="fas fa-key"></i>
+            <div class="sim-name">SSH Brute Force</div>
+            <div class="sim-desc">High-frequency authentication attempts across common port 22/2222.</div>
+            <button class="btn-action sim-start-btn" data-type="Brute Force">EXECUTE PAYLOAD</button>
+        </div>
+
+        <!-- Mixed -->
+        <div class="sim-card" data-type="Mixed" style="border-color: var(--accent-purple);">
+            <i class="fas fa-random" style="color: var(--accent-purple);"></i>
+            <div class="sim-name">Complex Mixed Attack</div>
+            <div class="sim-desc">Multi-vector scenario comprising simultaneous different attack patterns.</div>
+            <button class="btn-action sim-start-btn" data-type="Mixed" style="background: rgba(157, 80, 187, 0.1); border-color: var(--accent-purple); color: var(--accent-purple);">EXECUTE PAYLOAD</button>
+        </div>
+
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-terminal"></i> Simulation Log</span>
+        </div>
+        <div id="sim-terminal" style="background: #000; height: 300px; padding: 15px; font-family: var(--font-mono); font-size: 0.75rem; color: #39ff14; overflow-y: auto;">
+            <div>[SYSTEM] Simulation Engine Ready.</div>
+            <div>[SYSTEM] Awaiting payload execution...</div>
+        </div>
+    </div>
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-tachometer-alt"></i> Stress Metrics</span>
+        </div>
+        <div style="height: 300px;">
+            <canvas id="stressChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<style>
+    .sim-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .sim-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateY(-5px);
+        border-color: var(--accent-blue);
+    }
+    .sim-card i {
+        font-size: 2.5rem;
+        color: var(--accent-blue);
+        margin-bottom: 15px;
+        display: block;
+    }
+    .sim-name {
+        font-weight: bold;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+    }
+    .sim-desc {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        height: 48px;
+        overflow: hidden;
+    }
+    .sim-card .btn-action {
+        width: 100%;
+        padding: 10px;
+        background: transparent;
+        border: 1px solid var(--accent-blue);
+        color: var(--accent-blue);
+        font-weight: bold;
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+    .sim-card .btn-action:hover {
+        background: var(--accent-blue);
+        color: var(--bg-dark);
+    }
+    .sim-card .btn-action:disabled {
+        border-color: #444;
+        color: #444;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const stressCtx = document.getElementById('stressChart').getContext('2d');
+    const stressChart = new Chart(stressCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Packets / Sec',
+                borderColor: '#00d2ff',
+                data: [],
+                tension: 0.4
+            }]
+        },
+        options: getChartTheme()
+    });
+
+    document.querySelectorAll('.sim-start-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.getAttribute('data-type');
+            executeSim(type, btn);
+        });
+    });
+
+    function executeSim(type, btn) {
+        const terminal = document.getElementById('sim-terminal');
+        const originalText = btn.innerText;
+        
+        const log = (msg, color = '#39ff14') => {
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+        };
+
+        btn.disabled = true;
+        btn.innerText = "SIMULATING...";
+        log(`INITIATING ${type} PAYLOAD...`, 'var(--accent-yellow)');
+
+        fetch('/api/bulk-simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: type, count: 100 })
+        })
+        .then(res => res.json())
+        .then(data => {
+            log(`PAYLOAD INJECTED ON INTERFACE [eth0]`, 'var(--accent-blue)');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerText = originalText;
+                log(`${type} SIMULATION COMPLETE.`, 'white');
+            }, 5000);
+        });
+    }
+
+    socket.on('packet_data', (data) => {
+        const now = new Date().toLocaleTimeString();
+        stressChart.data.labels.push(now);
+        stressChart.data.datasets[0].data.push(Math.random()*100 + 50);
+        if(stressChart.data.labels.length > 20) {
+            stressChart.data.labels.shift();
+            stressChart.data.datasets[0].data.shift();
+        }
+        stressChart.update();
+    });
+</script>
+{% endblock %}

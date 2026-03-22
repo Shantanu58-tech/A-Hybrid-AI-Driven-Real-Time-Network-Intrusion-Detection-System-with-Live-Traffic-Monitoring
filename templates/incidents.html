@@ -1,0 +1,83 @@
+
+{% extends "layout.html" %}
+
+{% block title %}Incident Center | AI-SOC{% endblock %}
+{% block page_title %}Incident Response & Forensic Recovery{% endblock %}
+
+{% block content %}
+<div class="grid-2-1">
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-file-invoice"></i> Forensic Report Generation</span>
+        </div>
+        <div style="text-align: center; padding: 40px;">
+            <i class="fas fa-file-shield" style="font-size: 5rem; color: var(--accent-red); margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(255, 49, 49, 0.3));"></i>
+            <h3>Automated Incident Report</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 30px;">Generate a comprehensive PDF audit report for the most recent critical incident, including XAI findings.</p>
+            <a href="/api/generate-pdf" class="btn-action" style="padding: 15px 40px; text-decoration: none; display: inline-block; font-weight: bold; background: linear-gradient(135deg, var(--accent-red), #800); border: none; color: white;">
+                <i class="fas fa-file-pdf"></i> DOWNLOAD LATEST PDF
+            </a>
+        </div>
+    </div>
+    
+    <div class="soc-card">
+        <div class="soc-card-header">
+            <span class="soc-card-title"><i class="fas fa-user-shield"></i> Mitigation Recommendations</span>
+        </div>
+        <div id="recommendations-container" style="padding: 10px;">
+            <div style="background: rgba(255, 49, 49, 0.05); border: 1px solid rgba(255, 49, 49, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <div style="color: var(--accent-red); font-weight: bold; margin-bottom: 5px;"><i class="fas fa-ban"></i> Block IP Range</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Detected volumetric spike from 103.22.0.0/24. Suggest immediate firewall drops.</div>
+            </div>
+            <div style="background: rgba(0, 210, 255, 0.05); border: 1px solid rgba(0, 210, 255, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <div style="color: var(--accent-blue); font-weight: bold; margin-bottom: 5px;"><i class="fas fa-shield-alt"></i> Protocol Hardening</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Enforce TLS 1.3 only. HTTP/1.1 signatures showing brute force patterns.</div>
+            </div>
+            <div style="background: rgba(157, 80, 187, 0.05); border: 1px solid rgba(157, 80, 187, 0.2); padding: 15px; border-radius: 8px;">
+                <div style="color: var(--accent-purple); font-weight: bold; margin-bottom: 5px;"><i class="fas fa-sync"></i> Model Retraining</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Zero-Day pattern detected. Schedule offline calibration with new feature weights.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="soc-card" style="margin-top: 20px;">
+    <div class="soc-card-header">
+        <span class="soc-card-title"><i class="fas fa-stream"></i> Incident Timeline Reconstruction</span>
+    </div>
+    <div id="incident-timeline" style="padding: 20px; position: relative; margin-left: 20px; border-left: 2px solid var(--border-color);">
+        <!-- Timeline items -->
+        <div style="position: relative; margin-bottom: 30px; padding-left: 30px;">
+            <div style="position: absolute; left: -11px; top: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green);"></div>
+            <div style="font-size: 0.75rem; color: var(--accent-green);">08:45:10 - SYSTEM START</div>
+            <div style="font-size: 0.9rem; color: var(--text-primary);">Network monitoring initialized. AI Baseline loaded.</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    socket.on('alert', (data) => {
+        const timeline = document.getElementById('incident-timeline');
+        const now = new Date().toLocaleTimeString();
+        
+        const item = document.createElement('div');
+        item.style.position = 'relative';
+        item.style.marginBottom = '30px';
+        item.style.paddingLeft = '30px';
+        
+        const color = data.severity === 'Critical' ? 'var(--accent-red)' : 'var(--accent-yellow)';
+        
+        item.innerHTML = `
+            <div style="position: absolute; left: -11px; top: 0; width: 20px; height: 20px; border-radius: 50%; background: ${color}; box-shadow: 0 0 10px ${color};"></div>
+            <div style="font-size: 0.75rem; color: ${color};">${now} - THREAT DETECTED</div>
+            <div style="font-size: 0.9rem; color: var(--text-primary); font-weight: bold;">${data.type} Attack Pattern matched by AI [Conf: ${data.hybrid_score}]</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Source Vector: ${data.src_ip} | Protocol: ${data.protocol}</div>
+        `;
+        
+        timeline.prepend(item);
+        if (timeline.children.length > 10) timeline.removeChild(timeline.lastChild);
+    });
+</script>
+{% endblock %}
